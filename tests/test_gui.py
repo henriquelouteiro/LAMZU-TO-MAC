@@ -128,5 +128,23 @@ class GuiFlowTests(unittest.TestCase):
         self.assertEqual((f.setting("motion-sync"), f.setting("lod"), f.setting("debounce")), (1, 3, 6))
 
 
+@unittest.skipIf(QApplication is None, "PySide6 not installed")
+class ShutdownTests(unittest.TestCase):
+    def test_close_releases_device_on_hid_thread(self):
+        # Regression: quitting the HID thread used to drop the pending close job,
+        # leaving the device open until interpreter teardown (crash on macOS).
+        from lamzu_mac.gui.app import MainWindow
+        app = QApplication.instance() or QApplication([])
+        win = MainWindow(FLASH)
+        end = time.time() + 1.5
+        while time.time() < end:
+            app.processEvents()
+            time.sleep(0.01)
+        self.assertIsNotNone(win.worker.device)
+        win.close()
+        self.assertIsNone(win.worker.device)
+        self.assertFalse(win.thread.isRunning())
+
+
 if __name__ == "__main__":
     unittest.main()

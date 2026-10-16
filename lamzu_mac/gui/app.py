@@ -6,7 +6,7 @@ import os
 import sys
 from typing import Callable, List, Optional
 
-from PySide6.QtCore import QSize, Qt, QThread, QTimer
+from PySide6.QtCore import QMetaObject, QSize, Qt, QThread, QTimer
 from PySide6.QtGui import QFont
 from PySide6.QtWidgets import (
     QApplication, QButtonGroup, QFrame, QHBoxLayout, QLabel, QMainWindow, QPushButton,
@@ -274,10 +274,15 @@ class MainWindow(QMainWindow):
             self._show_battery()
 
     def closeEvent(self, e) -> None:
-        self.timer.stop()
-        self.worker.submit(lambda w: w.close())
-        self.thread.quit()
-        self.thread.wait(2000)
+        if self.thread.isRunning():
+            self.timer.stop()
+            self.worker.finished.disconnect(self._job_finished)
+            # Close the HID device on its own thread and wait for it. QThread.quit()
+            # drops queued jobs, which left the device open until interpreter
+            # teardown, where macOS crashed ("Python quit unexpectedly").
+            QMetaObject.invokeMethod(self.worker, "shutdown", Qt.ConnectionType.BlockingQueuedConnection)
+            self.thread.quit()
+            self.thread.wait()
         super().closeEvent(e)
 
     # -- screenshots --------------------------------------------------------
@@ -289,7 +294,7 @@ class MainWindow(QMainWindow):
             self._go(i)
             QApplication.processEvents()
             self.grab().save(os.path.join(directory, f"{i + 1}-{key}.png"))
-        QApplication.quit()
+        self.close()
 
 
 def main(argv=None) -> None:
@@ -310,7 +315,9 @@ def main(argv=None) -> None:
     if args.screenshot:
         win._on_loaded.append(lambda: QTimer.singleShot(400, lambda: win.capture_pages(args.screenshot)))
         QTimer.singleShot(20000, lambda: win.capture_pages(args.screenshot))
-    sys.exit(app.exec())
+    code = app.exec()
+    del win   # destroy the window (and its HID thread) before the QApplication
+    sys.exit(code)
 
 
 if __name__ == "__main__":

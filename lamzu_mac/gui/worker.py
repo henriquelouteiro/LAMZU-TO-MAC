@@ -110,6 +110,11 @@ class DeviceWorker(QObject):
         self.device = dev
         return dev
 
+    @Slot()
+    def shutdown(self) -> None:
+        """Invoked with BlockingQueuedConnection when the window closes."""
+        self.close()
+
     def close(self) -> None:
         if self.device is not None:
             try:
