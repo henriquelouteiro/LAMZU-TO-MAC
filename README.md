@@ -1,100 +1,118 @@
 # lamzu-mac
 
-Configurador aberto para mouses LAMZU (Atlantis OG V2, Atlantis Mini, Thorn, Maya,
-Paro, Atlantis Nordic) em macOS, que não tem app oficial. É um port do
-"Mouse Drive Beta" 1.6.0.43 para Windows, feito por engenharia reversa; o protocolo
-e as evidências estão em [docs/PROTOCOL.md](docs/PROTOCOL.md).
+**English** · [Português (Brasil)](README.pt-BR.md)
 
-Funciona também em Windows e Linux, porque usa `hidapi`.
+Open-source configurator for LAMZU mice (Atlantis OG V2, Atlantis Mini, Thorn, Maya,
+Paro, Atlantis Nordic) on macOS, which has no official app. It is a port of the
+Windows-only "Mouse Drive Beta" 1.6.0.43, built by reverse engineering; the protocol
+and the evidence behind it are in [docs/PROTOCOL.md](docs/PROTOCOL.md) (Portuguese).
 
-> Projeto independente, sem relação com a LAMZU. Use por sua conta e risco; antes de
-> mudar muita coisa, exporte um backup (`lamzu dump -o backup.bin` ou pela interface).
+It also runs on Windows and Linux, since it uses `hidapi`.
 
-## Compatibilidade
+> Independent project, not affiliated with LAMZU. Use at your own risk; before
+> changing a lot of settings, export a backup (`lamzu dump -o backup.bin` or from the app).
 
-O app detecta o modelo (comando de identificação do próprio mouse) e mostra só as
-opções que o app oficial mostra para ele, inclusive as taxas de polling suportadas
-pelo par mouse + receptor.
+## Compatibility
 
-| Modelo | Status |
+The app identifies the model (using the mouse's own identification command) and only
+shows the options the official app shows for it, including the polling rates supported
+by the mouse + receiver pair.
+
+| Model | Status |
 |---|---|
-| Atlantis Mini + receptor 4K | testado no Windows e no macOS |
-| Atlantis OG V2, Thorn, Maya, Paro, Atlantis Nordic-R'lyeh | suportados pelo app oficial 1.6.0.43, ainda não testados aqui |
-| Modo com cabo (PID `0xF50F`), receptores 1K/2K/8K | previstos, ainda não testados |
-| Outros PIDs com VID `0x3554` | aceitos só se o dispositivo se identificar como LAMZU (CID 11) |
+| Atlantis Mini + 4K receiver | tested on Windows and macOS |
+| Atlantis OG V2, Thorn, Maya, Paro, Atlantis Nordic-R'lyeh | supported by the official app 1.6.0.43, not tested here yet |
+| Wired mode (PID `0xF50F`), 1K/2K/8K receivers | expected to work, not tested yet |
+| Other PIDs with VID `0x3554` | accepted only if the device identifies itself as LAMZU (CID 11) |
 
-Testou outro modelo? Abra uma issue com a saída de `lamzu info` e `lamzu selftest`.
+Tested another model? Please open an issue with the output of `lamzu info` and `lamzu selftest`.
 
-## Instalação (macOS)
+## Installation
 
-Precisa de Python 3.10+ (python.org ou `brew install python`). Na pasta do projeto:
+Requires Python 3.10+.
+
+### macOS
+
+Install Python from python.org or with `brew install python`, then:
 
 ```sh
+git clone https://github.com/henriquelouteiro/LAMZU-TO-MAC.git
+cd LAMZU-TO-MAC
 bash scripts/install-mac.sh
 ```
 
-O script cria `.venv`, instala `hidapi` e `PySide6`, roda os testes e cria
-**LAMZU Configurator** em `~/Applications`. Depois, conecte o receptor e rode
-`source .venv/bin/activate && lamzu selftest` para validar a comunicação.
+The script creates `.venv`, installs `hidapi` and `PySide6`, runs the tests and creates
+**LAMZU Configurator** in `~/Applications` (also available through Spotlight). Then plug
+in the receiver and run `source .venv/bin/activate && lamzu selftest` to validate the
+connection. The app points to the folder where you ran the script, so keep that folder.
 
-Instalação manual: `python3 -m pip install ".[gui]"`.
+The configuration channel is a vendor-defined HID collection (`0xFF02`), not a
+keyboard or mouse, so no special permission should be needed. If macOS asks for
+*Input Monitoring*, allow it for Terminal/Python in System Settings → Privacy & Security.
 
-O canal de configuração é uma coleção HID vendor-defined (`0xFF02`), e não teclado
-ou mouse; por isso não deve precisar da permissão de *Monitoramento de Entrada*.
-Isso ainda não foi verificado num Mac.
-
-## Interface gráfica
+### Windows / Linux
 
 ```sh
-python3 -m pip install ".[gui]"     # inclui PySide6 (Qt)
-lamzu-gui                           # ou: python3 -m lamzu_mac.gui
-lamzu-gui --demo tests/fixtures/flash_f510.bin   # sem mouse, usando um dump
+git clone https://github.com/henriquelouteiro/LAMZU-TO-MAC.git
+cd LAMZU-TO-MAC
+python -m venv .venv
+.venv\Scripts\activate            # Linux: source .venv/bin/activate
+pip install -e ".[gui]"
+lamzu-gui
 ```
 
-Cinco seções: **Desempenho** (polling e estágios de DPI com cor), **Botões**
-(diagrama clicável; clique, DPI, rolagem, mídia, atalho de teclado, tiro rápido,
-trava de DPI), **Iluminação**, **Sensor** (Motion Sync, correção de ângulo,
-ripple, LOD, modo LP/HP, debounce) e **Dispositivo** (bateria, longa distância,
-backup, autoteste, padrões de fábrica). As mudanças são gravadas na hora.
+On Windows, close the official "Mouse Drive Beta" so both apps don't compete for the
+device. On Linux, your user needs read/write access to the `hidraw` device (udev rule).
 
-## Linha de comando
+## Desktop app
 
 ```sh
-lamzu info                        # firmware, bateria, DPI, botões, ajustes
-lamzu dpi 0 800 --color 00ff00    # estágio 0 = 800 DPI, LED verde
-lamzu stages 3                    # 3 estágios de DPI ativos
-lamzu active 1                    # estágio ativo
-lamzu rate 4000                   # 125/250/500/1000/2000/4000 Hz
-lamzu button 4 dpi-up             # botões 0-5: esq, dir, meio, voltar, avançar, dpi
-lamzu shortcut 3 cmd+c            # atalho de teclado ou mídia (mute, play, vol-up…)
-lamzu settings                    # ajustes avançados disponíveis
+lamzu-gui                                         # or: python -m lamzu_mac.gui
+lamzu-gui --demo tests/fixtures/flash_f510.bin    # no mouse needed, uses a flash dump
+```
+
+Sections: **Performance** (polling rate and DPI stages with colors), **Buttons**
+(clickable diagram: clicks, DPI, scrolling, media keys, keyboard shortcuts, rapid fire,
+DPI lock), **Lighting** (only for models with LEDs), **Sensor** (Motion Sync, angle
+snapping, ripple control, LOD, LP/HP mode, debounce) and **Device** (battery,
+long-range mode, backup, self-test, factory reset). Changes are written immediately.
+
+## Command line
+
+```sh
+lamzu info                        # model, firmware, battery, DPI, buttons, settings
+lamzu dpi 0 800 --color 00ff00    # stage 0 = 800 DPI, green LED
+lamzu stages 3                    # 3 active DPI stages
+lamzu active 1                    # active stage
+lamzu rate 4000                   # 125 … 8000 Hz, as supported by mouse and receiver
+lamzu button 4 dpi-up             # buttons 0-5: left, right, middle, back, forward, dpi
+lamzu shortcut 3 cmd+c            # keyboard shortcut or media key (mute, play, vol-up…)
+lamzu settings                    # list of advanced settings
 lamzu set motion-sync 1
-lamzu dump -o backup.bin          # cópia bruta da flash de configuração
-lamzu selftest                    # teste reversível de leitura/gravação (rode primeiro no Mac)
-lamzu reset --yes                 # restaura padrões de fábrica
+lamzu dump -o backup.bin          # raw copy of the configuration flash
+lamzu selftest                    # reversible read/write test (run this first)
+lamzu reset --yes                 # factory reset
 ```
 
-Antes de gravar, use `--dry-run` para ver os pacotes sem enviá-los, e `-v` para ver
-o tráfego HID. Com o receptor sem fio, o mouse precisa estar acordado: o receptor
-responde ao status online, mas leituras e gravações são repassadas ao mouse.
+Use `--dry-run` to print the packets without sending them, and `-v` to log the HID
+traffic. With the wireless receiver the mouse must be awake: the receiver answers the
+online status, but reads and writes are relayed to the mouse.
 
-Feche o "Mouse Drive Beta" ao usar no Windows, para os dois não disputarem o canal.
-
-## Estrutura
+## Project layout
 
 ```
-lamzu_mac/protocol.py   codificação pura: relatórios, checksum, mapa da flash, DPI, botões
-lamzu_mac/device.py     transporte hidapi (mesma temporização/retentativas do app original)
-lamzu_mac/cli.py        linha de comando
-lamzu_mac/gui/          interface PySide6 (HID numa thread separada; modo --demo)
-tests/                  testes com dump real de um receptor 0xF510 (+ fluxo da GUI)
-tools/re/               scripts usados na engenharia reversa
+lamzu_mac/protocol.py   pure encoding: reports, checksum, flash map, DPI, buttons, model table
+lamzu_mac/device.py     hidapi transport (same timing/retries as the original app)
+lamzu_mac/cli.py        command line
+lamzu_mac/gui/          PySide6 app (HID on a separate thread; --demo mode)
+tests/                  tests with a real 0xF510 receiver dump (+ GUI flows)
+tools/re/               scripts used for the reverse engineering
 ```
 
 ```sh
 python -m unittest discover -s tests -t .
 ```
 
-## Licença
+## License
 
-MIT. Veja [LICENSE](LICENSE).
+MIT. See [LICENSE](LICENSE).
