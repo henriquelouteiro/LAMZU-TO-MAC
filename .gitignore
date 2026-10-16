@@ -1,0 +1,13 @@
+.venv/
+.re-cache/
+__pycache__/
+*.egg-info/
+build/
+dist/
+node_modules/
+*.lnk
+# local reverse-engineering tooling (not part of the project)
+.claude/
+.mcp.json
+package.json
+package-lock.json
