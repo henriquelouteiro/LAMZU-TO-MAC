@@ -50,6 +50,22 @@ The configuration channel is a vendor-defined HID collection (`0xFF02`), not a
 keyboard or mouse, so no special permission should be needed. If macOS asks for
 *Input Monitoring*, allow it for Terminal/Python in System Settings → Privacy & Security.
 
+**Updating** (close the app first; no need to uninstall):
+
+```sh
+cd LAMZU-TO-MAC
+bash scripts/update-mac.sh        # git pull + reinstall dependencies, tests and app
+```
+
+**Uninstalling:**
+
+```sh
+bash scripts/uninstall-mac.sh     # removes ~/Applications/LAMZU Configurator.app and .venv
+cd .. && rm -rf LAMZU-TO-MAC      # optional: delete the code too
+```
+
+Your mouse keeps its settings either way: they are stored in the mouse, not on the computer.
+
 ### Windows / Linux
 
 ```sh

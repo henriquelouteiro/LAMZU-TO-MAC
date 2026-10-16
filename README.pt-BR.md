@@ -51,6 +51,22 @@ mouse, então nenhuma permissão especial deve ser necessária. Se o macOS pedir
 *Monitoramento de Entrada*, autorize o Terminal/Python em Ajustes do Sistema →
 Privacidade e Segurança.
 
+**Atualizar** (feche o app antes; não precisa desinstalar):
+
+```sh
+cd LAMZU-TO-MAC
+bash scripts/update-mac.sh        # git pull + reinstala dependências, testes e o app
+```
+
+**Desinstalar:**
+
+```sh
+bash scripts/uninstall-mac.sh     # remove ~/Applications/LAMZU Configurator.app e a .venv
+cd .. && rm -rf LAMZU-TO-MAC      # opcional: apaga também o código
+```
+
+O mouse mantém as configurações de qualquer jeito: elas ficam gravadas no mouse, não no computador.
+
 ### Windows / Linux
 
 ```sh
